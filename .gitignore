@@ -1,0 +1,9 @@
+**/build/
+difftest/*
+.history/*
+*.log
+*.fst
+*.out
+.gdb_history
+.vscode/
+.DS_Store
