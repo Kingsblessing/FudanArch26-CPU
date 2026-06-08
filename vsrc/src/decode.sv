@@ -47,6 +47,7 @@ module decode import common::*;(
 	logic is_auipc;
 	logic is_system;
 	logic is_csr;
+    logic is_illegal;
 	
 	// 初始化信号在reset时处理
 	
@@ -82,6 +83,7 @@ module decode import common::*;(
 		is_auipc = 1'b0;
 		is_system = 1'b0;
 		is_csr = 1'b0;
+        is_illegal = 1'b0;
 		
 		case (opcode) 
 			7'b0110111: begin // U-type (lui)
@@ -209,6 +211,8 @@ module decode import common::*;(
                     imm = {52'b0, imm_i};
                 end
 			end
+			7'b0001111: begin end // FENCE
+			7'b1101011: begin end // HALT
 			
 			default: begin // 默认情况，所有控制信号设为默认值
 				reg_write = 1'b0;
@@ -227,7 +231,9 @@ module decode import common::*;(
 				is_auipc = 1'b0;
 				is_system = 1'b0;
 				is_csr = 1'b0;
+        is_illegal = 1'b0;
 				alu_op = 5'd0;
+				is_illegal = 1'b1;
 			end
 		endcase
 	end
@@ -257,6 +263,7 @@ module decode import common::*;(
 			id_ex_reg.is_auipc <= 1'b0;
 			id_ex_reg.is_system <= 1'b0;
 			id_ex_reg.is_csr <= 1'b0;
+				id_ex_reg.except_illegal_instr <= 1'b0;
 			id_ex_reg.alu_op <= 5'b0;
 			id_ex_reg.alu_src <= 1'b0;
 			id_ex_reg.mem_write <= 1'b0;
@@ -292,6 +299,7 @@ module decode import common::*;(
 			id_ex_reg.is_auipc <= is_auipc;
 			id_ex_reg.is_system <= is_system;
 			id_ex_reg.is_csr <= is_csr;
+				id_ex_reg.except_illegal_instr <= is_illegal;
 			id_ex_reg.funct3 <= funct3;
 			id_ex_reg.funct7 <= funct7;
 			id_ex_reg.opcode <= opcode;

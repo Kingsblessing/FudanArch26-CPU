@@ -29,6 +29,12 @@ module csr_regfile import common::*; import csr_pkg::*; (
     input  u2          trap_priv_wb,
     input  u64         trap_pc,
     input  u12         trap_ecall_imm,
+    input  logic       trint,
+    input  logic       swint,
+    input  logic       exint,
+    input  logic       interrupt_taken,
+    input  logic       trap_is_interrupt_wb,
+    input  logic [5:0] trap_code_wb,
     output u2          priv_mode,
     output u2          priv_mode_q_out,
     output word_t      mtvec_o,
@@ -46,23 +52,18 @@ module csr_regfile import common::*; import csr_pkg::*; (
     output word_t      dbg_mhartid,
     output word_t      dbg_satp,
     output word_t      mstatus_q_out,
-    output word_t      mcause_q_out,
-    output word_t      mepc_q_out,
-    output word_t      satp_q_out
+    output word_t      mie_q_out
 );
     word_t mstatus_q, mtvec_q, mip_q, mie_q, mscratch_q, mcause_q, mtval_q, mepc_q, mcycle_q, satp_q;
     u2     priv_mode_q;
-
     word_t mstatus_d, mtvec_d, mip_d, mie_d, mscratch_d, mcause_d, mtval_d, mepc_d, mcycle_d, satp_d;
     u2     priv_mode_d;
 
-    assign priv_mode        = priv_mode_d;
+    assign priv_mode        = interrupt_taken ? 2'b11 : priv_mode_d;
     assign priv_mode_q_out  = priv_mode_q;
     assign mtvec_o   = mtvec_q;
     assign mepc_o    = mepc_q;
     assign satp_o    = satp_q;
-
-    // dbg_* = *_d: Lab4 CSR write commit timing; trap updates visible same cycle in EX
     assign dbg_mstatus  = mstatus_d;
     assign dbg_mtvec    = mtvec_d;
     assign dbg_mip      = mip_d;
@@ -75,9 +76,7 @@ module csr_regfile import common::*; import csr_pkg::*; (
     assign dbg_mhartid  = 64'd0;
     assign dbg_satp     = satp_d;
     assign mstatus_q_out = mstatus_q;
-    assign mcause_q_out  = mcause_q;
-    assign mepc_q_out    = mepc_q;
-    assign satp_q_out    = satp_q;
+    assign mie_q_out     = mie_q;
 
     function automatic word_t apply_wmask(word_t wdata, word_t oldv, word_t wmask);
         return (wdata & wmask) | (oldv & ~wmask);
@@ -103,7 +102,6 @@ module csr_regfile import common::*; import csr_pkg::*; (
 
     always_comb begin
         mstatus_t ms;
-
         mstatus_d  = mstatus_q;
         mtvec_d    = mtvec_q;
         mip_d      = mip_q;
@@ -129,7 +127,6 @@ module csr_regfile import common::*; import csr_pkg::*; (
             satp_d      = 64'b0;
             priv_mode_d = 2'b11;
         end else begin
-            // Lab5: trap_csr_commit (WB, older) first; trap_fire_ex (EX, newer) overrides
             if (trap_csr_commit) begin
                 if (trap_is_mret_wb) begin
                     priv_mode_d = mstatus_q[12:11];
@@ -137,6 +134,7 @@ module csr_regfile import common::*; import csr_pkg::*; (
                     mstatus_d[3]  = mstatus_q[7];
                     mstatus_d[7]  = 1'b1;
                     mstatus_d[12:11] = 2'b00;
+                    mstatus_d[16:15] = 2'b00;
                 end else begin
                     mepc_d      = trap_pc;
                     priv_mode_d = 2'b11;
@@ -144,12 +142,7 @@ module csr_regfile import common::*; import csr_pkg::*; (
                     mstatus_d[12:11] = trap_priv_wb;
                     mstatus_d[7]     = mstatus_q[3];
                     mstatus_d[3]     = 1'b0;
-                    if (trap_priv_wb == 2'b00)
-                        mcause_d = 64'd8;
-                    else if (trap_priv_wb == 2'b01)
-                        mcause_d = 64'd9;
-                    else
-                        mcause_d = 64'd11;
+                    mcause_d = {trap_is_interrupt_wb, 57'b0, trap_code_wb};
                 end
             end
             if (trap_fire_ex) begin
@@ -158,6 +151,8 @@ module csr_regfile import common::*; import csr_pkg::*; (
                 else
                     priv_mode_d = 2'b11;
             end
+            if (interrupt_taken)
+                priv_mode_d = 2'b11;
 
             if (csr_we && csr_waddr == CSR_MCYCLE)
                 mcycle_d = csr_wdata;
@@ -178,6 +173,9 @@ module csr_regfile import common::*; import csr_pkg::*; (
                     default:      ;
                 endcase
             end
+            mip_d[7]  = trint;
+            mip_d[3]  = swint;
+            mip_d[11] = exint;
         end
     end
 

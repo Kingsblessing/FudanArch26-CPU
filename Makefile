@@ -79,6 +79,9 @@ test-lab4: sim
 test-lab5: sim
 	TEST=$(TEST) ./build/emu --diff $(REF_SO) -i ./ready-to-run/lab5/kernel.bin $(VOPT) || true
 
+test-lab5-extra: sim
+	TEST=$(TEST) ./build/emu --diff $(REF_SO) -i ./ready-to-run/lab5_yzy/kernel_bonus.bin $(VOPT) || true
+
 test-lab6: sim
 	TEST=sys ./build/emu --no-diff -i ./ready-to-run/lab6/lab6-test.bin $(VOPT) || true
 

@@ -16,7 +16,8 @@ module fetch import common::*;(
     input  logic       redirect_valid,
     input  u64         redirect_pc,
     input  logic       trap_fire,
-    output REG_IF_ID   if_id_reg 
+    output REG_IF_ID   if_id_reg,
+    output u64         current_pc
 );
     u64 pc;
     u32 instr;
@@ -24,6 +25,8 @@ module fetch import common::*;(
     logic fetch_in_progress;
     logic redirect_pending;
     u64 pending_redirect_pc;
+
+    assign current_pc = if_id_reg.valid ? if_id_reg.pc : pc;
     
     always_ff @(posedge clk) begin
         if (reset) begin

@@ -76,6 +76,8 @@ module memory import common::*;(
             mem_wb_reg.trap_pending <= 1'b0;
             mem_wb_reg.trap_is_mret <= 1'b0;
             mem_wb_reg.trap_priv     <= 2'b11;
+            mem_wb_reg.trap_is_interrupt <= 1'b0;
+            mem_wb_reg.trap_code     <= 6'd0;
             
         end else begin
             if (flush && mem_in_progress) begin
@@ -100,6 +102,8 @@ module memory import common::*;(
                 mem_wb_reg.trap_pending <= ex_mem_reg.trap_pending;
                 mem_wb_reg.trap_is_mret <= ex_mem_reg.trap_is_mret;
                 mem_wb_reg.trap_priv     <= ex_mem_reg.trap_priv;
+                mem_wb_reg.trap_is_interrupt <= ex_mem_reg.trap_is_interrupt;
+                mem_wb_reg.trap_code     <= ex_mem_reg.trap_code;
             end
             if (!mem_in_progress && ex_mem_reg.valid && (ex_mem_reg.is_load || ex_mem_reg.is_store) && !req_completed) begin
             // 发现需要访存的指令，发起内存总线请求（此时 step 为 0，前序指令安全停留在 mem_wb_reg）

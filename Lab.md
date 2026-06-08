@@ -678,11 +678,19 @@ dbus -> d_cbus -> | Arbiter |
 
 # Lab6
 
+## Lab6 目标
+
 支持中断与异常。
 
 需要支持：时钟中断、外部中断、异常（ECALL、非法指令、页错误等）。
 
 你必须先阅读**特权架构**
+
+> Bonus: 实现MMU的缺页异常
+
+> Bonus: 观察 difftest 代码，你会发现 mtimecmp 在 0x38004000，mtime 在 0x3800bff8。请利用给出的测试程序构建框架，利用这两个寄存器，编写中断处理程序，在时钟中断时打印一些内容，并重设 mtimecmp。你需要在报告中额外包含 c/cpp/汇编 代码，不需要提供文件。
+
+> Bonus: 说明时钟中断为什么使用 MMIO 计时器
 
 ## 实验细节
 
@@ -697,8 +705,6 @@ dbus -> d_cbus -> | Arbiter |
 • 数据地址不对齐
 • 非法指令
 • ecall
-
-> Bonus：实现MMU的缺页异常
 
 发生异常时，要进行下列操作：
 
@@ -734,7 +740,6 @@ dbus -> d_cbus -> | Arbiter |
 
 本次Lab我们只要求在 (1) 刚收到一个中断信号 时执行中断 evaluate
 
->hint（非 bonus）思考：每次流水线前进，有新的指令要 fetch 时，在 fetch 模块进行 evaluate 是否有合理性？
 >hint: 由于理论上中断并不与 CPU 时钟同步。你不应该检测中断信号的 posedge/negedge。
 
 中断时，除了第三步要将 mcause[63] 赋值为 1 外，其他进行的操作与异常处理相同。
@@ -752,6 +757,37 @@ dbus -> d_cbus -> | Arbiter |
 ## Lab6 测试
 
 运行 make test-lab6，出现以下输出
+
+```
+Single test passed.
+Run sys-test
+trap here, epc 8000600c, cause 8
+Test ecall_u [OK]
+trap here, epc 8000608c, cause 8
+trap here, epc 80006028, cause 0
+Test instr_misalign [OK]
+trap here, epc 8000608c, cause 8
+trap here, epc 80006040, cause 4
+Test load_misalign [OK]
+trap here, epc 8000608c, cause 8
+trap here, epc 80006050, cause 6
+Test store_misalign [OK]
+trap here, epc 8000608c, cause 8
+trap here, epc 80007f68, cause 8000000000000007
+Test timer_intr [OK]
+trap here, epc 8000608c, cause 8
+trap here, epc 80007f68, cause 8000000000000003
+Test software_intr [OK]
+trap here, epc 8000607c, cause 8
+Timer interrupt in test_trap, this should happen 50 times.
+Timer interrupt in test_trap, this should happen 50 times.
+Timer interrupt in test_trap, this should happen 5e times.
+Timer interrupt in test_trap, this should happen 5e times.
+Timer interrupt in test_trap, this should happen 5e times.
+Timer interrupt in test_trap, this should happen 5e times.
+Timer interrupt in test_trap, this should happen 50 times.
+# 出现多于 50 次也是正常的。
+```
 
 本次测试暂时没有 Difftest，能看到 Privileged test finished. 输出就算正确。
 
