@@ -76,7 +76,7 @@ module core import common::*;(
     word_t csr_mstatus, csr_mtvec_trap, csr_mtvec_dbg, csr_mip, csr_mie, csr_mscratch;
     word_t csr_mcause, csr_mtval, csr_mepc_trap, csr_mepc_dbg, csr_mcycle, csr_mhartid;
     word_t csr_satp_mmu, csr_satp_dbg;
-    word_t csr_mstatus_q, csr_mie_q;
+    word_t csr_mie_q;
     u2 priv_mode, priv_mode_q, priv_mode_difftest;
     logic trap_fire, trap_is_mret; u12 trap_ecall_imm; u64 trap_pc; logic trap_csr_commit;
     u64 fetch_current_pc;
@@ -101,7 +101,7 @@ module core import common::*;(
         .csr_raddr(id_ex_reg.imm[11:0]), .csr_rdata(csr_rdata),
         .trap_fire_ex(trap_fire), .trap_csr_commit(trap_csr_commit),
         .trap_is_mret_ex(trap_is_mret), .trap_is_mret_wb(mem_wb_reg.trap_is_mret),
-        .trap_priv_wb(mem_wb_reg.trap_priv), .trap_pc(trap_pc), .trap_ecall_imm(trap_ecall_imm),
+        .trap_priv_wb(mem_wb_reg.trap_priv), .trap_pc(trap_pc),
         .trint(trint), .swint(swint), .exint(exint),
         .interrupt_taken(interrupt_fire),
         .trap_is_interrupt_wb(mem_wb_reg.trap_is_interrupt), .trap_code_wb(mem_wb_reg.trap_code),
@@ -110,7 +110,7 @@ module core import common::*;(
         .dbg_mstatus(csr_mstatus), .dbg_mtvec(csr_mtvec_dbg), .dbg_mip(csr_mip), .dbg_mie(csr_mie),
         .dbg_mscratch(csr_mscratch), .dbg_mcause(csr_mcause), .dbg_mtval(csr_mtval),
         .dbg_mepc(csr_mepc_dbg), .dbg_mcycle(csr_mcycle), .dbg_mhartid(csr_mhartid), .dbg_satp(csr_satp_dbg),
-        .mstatus_q_out(csr_mstatus_q), .mie_q_out(csr_mie_q)
+        .mie_q_out(csr_mie_q)
     );
 
     fetch fetch_module(.clk(clk), .reset(reset), .step(step), .fetch_ok(fetch_ok), .ireq(ireq), .iresp(iresp),
@@ -124,7 +124,7 @@ module core import common::*;(
     execute execute_module(.clk(clk), .reset(reset), .step(step), .execute_ok(execute_ok), .id_ex_reg(id_ex_reg),
         .forward_ctrl(forward_ctrl), .wb_data(reg_wdata), .mem_forward_data(mem_forward_data),
         .csr_rdata(csr_rdata), .csr_mtvec(csr_mtvec_trap), .csr_mepc(csr_mepc_trap),
-        .priv_mode_q(priv_mode_q), .priv_mode(priv_mode),
+        .priv_mode_q(priv_mode_q),
         .redirect_valid(redirect_valid), .redirect_pc(redirect_pc),
         .trap_fire(trap_fire), .trap_is_mret(trap_is_mret), .trap_ecall_imm(trap_ecall_imm),
         .interrupt_fire(interrupt_fire), .interrupt_pc(interrupt_save_pc),

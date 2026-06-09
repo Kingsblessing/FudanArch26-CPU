@@ -19,7 +19,6 @@ module execute import common::*;(
     input  word_t      csr_mtvec,
     input  word_t      csr_mepc,
     input  u2          priv_mode_q,
-    input  u2          priv_mode,
     output logic       redirect_valid,
     output u64         redirect_pc,
     output logic       trap_fire,

@@ -28,7 +28,6 @@ module csr_regfile import common::*; import csr_pkg::*; (
     input  logic       trap_is_mret_wb,
     input  u2          trap_priv_wb,
     input  u64         trap_pc,
-    input  u12         trap_ecall_imm,
     input  logic       trint,
     input  logic       swint,
     input  logic       exint,
@@ -51,7 +50,6 @@ module csr_regfile import common::*; import csr_pkg::*; (
     output word_t      dbg_mcycle,
     output word_t      dbg_mhartid,
     output word_t      dbg_satp,
-    output word_t      mstatus_q_out,
     output word_t      mie_q_out
 );
     word_t mstatus_q, mtvec_q, mip_q, mie_q, mscratch_q, mcause_q, mtval_q, mepc_q, mcycle_q, satp_q;
@@ -75,8 +73,7 @@ module csr_regfile import common::*; import csr_pkg::*; (
     assign dbg_mcycle   = mcycle_d;
     assign dbg_mhartid  = 64'd0;
     assign dbg_satp     = satp_d;
-    assign mstatus_q_out = mstatus_q;
-    assign mie_q_out     = mie_q;
+    assign mie_q_out = mie_q;
 
     function automatic word_t apply_wmask(word_t wdata, word_t oldv, word_t wmask);
         return (wdata & wmask) | (oldv & ~wmask);
@@ -101,7 +98,6 @@ module csr_regfile import common::*; import csr_pkg::*; (
     end
 
     always_comb begin
-        mstatus_t ms;
         mstatus_d  = mstatus_q;
         mtvec_d    = mtvec_q;
         mip_d      = mip_q;
